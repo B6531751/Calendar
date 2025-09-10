@@ -1,48 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <title>Technician Calendar Demo</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <style>
-    html,body {margin:0; padding:0; height:100%}
-    #calendar {max-width: 1100px; margin:40px auto; height:90%}
+    body {
+      margin: 40px 10px;
+      font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+    #calendar {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body>
   <div id="calendar"></div>
+
   <script>
-    const REPORT_TECH_PAGE_URL = "https://lookerstudio.google.com/reporting/XXXX/page/p_YYYY"; // ใส่ลิงก์จริงของคุณ
+    // 🔗 ลิงก์แม่แบบจาก Looker Studio (หน้า 2)
+    // ไปที่หน้า Technician Profile → Share → Copy link (Include current state)
+    // แล้วแทนค่าตรง TechnicianID=XXXX ให้เป็น "PLACEHOLDER"
+    const baseUrl = "https://lookerstudio.google.com/reporting/<YOUR_REPORT_ID>/page/<PAGE2_ID>?params=TechnicianID=PLACEHOLDER";
 
-    // Mock data สำหรับทดสอบ (ใส่ไว้ตรงนี้ก่อนต่อ DB จริง)
-    const mockData = [
-      {date:"2025-09-08", tech_id:"T001", tech_name:"B", location:"Bangkok"},
-      {date:"2025-09-08", tech_id:"T002", tech_name:"C", location:"Rayong"},
-      {date:"2025-09-09", tech_id:"T003", tech_name:"A", location:"Chonburi"}
-    ];
-
-    function toEvents(rows){
-      return rows.map(r => ({
-        title: `${r.tech_name} — ${r.location}`,
-        start: r.date,
-        allDay: true,
-        extendedProps: { tech_id: r.tech_id }
-      }));
+    // ฟังก์ชันสร้างลิงก์เฉพาะของแต่ละช่าง
+    function linkFor(techId) {
+      return baseUrl.replace("PLACEHOLDER", encodeURIComponent(techId));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    // 📌 events ตัวอย่าง (ทดสอบก่อน ต่อ Database ได้ภายหลัง)
+    const events = [
+      { title: "B010", start: "2025-09-08", url: linkFor("B010") },
+      { title: "B546", start: "2025-09-09", url: linkFor("B546") },
+      { title: "B929", start: "2025-09-10", url: linkFor("B929") }
+    ];
+
+    // โหลดปฏิทิน
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        locale: 'th',
-        firstDay: 1,
-        events: toEvents(mockData),
-        eventClick: info => {
-          const techId = info.event.extendedProps.tech_id;
-          const url = `${REPORT_TECH_PAGE_URL}?params=tech_id:${encodeURIComponent(techId)}`;
-          window.open(url, "_top");
+        locale: 'th', // ภาษาไทย
+        events: events,
+        eventClick: function (info) {
+          info.jsEvent.preventDefault(); // กันเปิด default
+          window.open(info.event.url, "_blank"); // เปิด Looker Studio หน้า 2
         }
       });
-      cal.render();
+      calendar.render();
     });
   </script>
 </body>
